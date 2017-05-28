@@ -65,7 +65,9 @@
 				Audio bitrate: <input v-model="audio_bitrate" style="width: 50px">
 			</div>
 			<div v-if="input=='images'">
-				Frame rate: <input v-model="framerate" style="width: 50px"> <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'When concatenating several files, differing framerates will lead to errors with FFmpeg. My recommendation is in these cases to encode all files to the same, quite high, frame rate. This is no problem because repeated frames don\'t take up any space.'">ⓘ</span>
+				<label>Frame rate: <input v-model="framerate" style="width: 50px"></label><br>
+				<label><input type="checkbox" v-model="concatenate"> I will concatenate this file with other video material</label> <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'When concatenating several files, differing frame rates will lead to errors with FFmpeg.<br>My recommendation is in these cases to encode all files to the same, quite high, frame rate.<br>Doing so won\'t increase the file size because repeated frames don\'t take up any space.'">ⓘ</span><br>
+				<label v-if="concatenate">Output frame rate: <input v-model="output_framerate" style="width: 50px"></label>
 			</div>
 			<div>
 				How to set the quality: <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'FFmpeg always encodes according to a Rate Factor that specifies the quality of the result.<br>Instead of directly specifying the Rate Factor, an average bit rate can be specified. FFmpeg will then determine the optimal Rate Factor in a first pass.<br>In fact the first pass is only used for determining the Rate Factor, no other data is carried over into the second pass.<br>Specifying an average bitrate but running only one pass is possible, but not recommended. FFmpeg would then encode the beginning of the video with a random Rate Factor and then change it near the end of the video to eventually reach the target bitrate.'">ⓘ</span><br>
@@ -157,7 +159,9 @@
 					audio: true,
 					audio_bitrate: 128,
 					banner: false,
-					faststart: true
+					faststart: true,
+					concatenate: false,
+					output_framerate: 25
 				},
 				computed: {
 					commandline: function() {
@@ -168,6 +172,10 @@
 							opts += '-i source.ext ';
 						if (this.input == 'images') {
 							opts += '-framerate ' + this.framerate + ' -i image%03d.jpg ';
+
+							if (this.concatenate && this.framerate != this.output_framerate) {
+								opts += '-r ' + this.output_framerate + ' ';
+							}
 						}
 
 						opts += '-c:v libx264 '; // necessary?
