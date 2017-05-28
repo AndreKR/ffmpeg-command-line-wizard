@@ -75,13 +75,21 @@
 				<label><input type="radio" name="mode" v-model="mode" value="ABR" disabled> Determine from target bitrate (2-Pass)</label>
 			</div>
 			<div v-if="mode == 'CRF'">
-				<label>
+				<label for="rf_slider">
 					Rate factor:
-					<span style="display: inline-block; width: 30px;" v-bind:style="{ color: rf < 18 || rf > 28 ? 'orange' : ( rf == 23 ? 'blue' : 'green' ) }">{{ rf }}</span>
-					<span style="font-size: 11px; vertical-align: 8px;">Lossless</span>
-					<input v-model="rf" type="range" min="0" max="51" step="1">
-					<span style="font-size: 11px; vertical-align: 8px;">Bad</span>
 				</label>
+				<span style="display: inline-block; width: 30px;" v-bind:style="{ color: rf != 0 && rf < 18 || rf > 28 ? 'orange' : ( rf == 23 ? 'blue' : 'green' ) }">{{ rf }}</span>
+				<table style="display: inline-table; vertical-align: middle;">
+					<tr>
+						<td style="font-size: 11px;">Lossless</td>
+						<td rowspan="2"><input id="rf_slider" v-model="rf" type="range" min="0" max="51" step="1"></td>
+						<td style="font-size: 11px;">Bad quality</td>
+					</tr>
+					<tr>
+						<td style="font-size: 11px;">Large file</td>
+						<td style="font-size: 11px;">Small file</td>
+					</tr>
+				</table>
 			</div>
 			<div>
 				<label>
@@ -106,7 +114,7 @@
 				<label><input type="checkbox" v-model="tunings" value="grain"> Input video contains film grain</label><br>
 				<label><input type="checkbox" v-model="tunings" value="stillimage"> Input video is an image slideshow</label><br>
 				<label><input type="checkbox" v-model="tunings" value="fastdecode"> Optimize for really weak CPU playback devices</label><br>
-				<label><input type="checkbox" v-model="profile"> Optimize for really old devices</label><br>
+				<label v-if="rf != 0"><input type="checkbox" v-model="profile"> Optimize for really old devices</label><br v-if="rf != 0">
 				<label><input type="checkbox" v-model="faststart"> Move headers to beginning of file (so it can play while still downloading)</label><br>
 				<label><input type="checkbox" v-model="limit"> Limit bitrate to <input v-model="limit_mbps" style="width: 50px" v-bind:disabled="!limit"> Mbit/s <span v-if="limit">(assuming a receiving buffer of <input v-model="limit_buffer" style="width: 50px" v-bind:disabled="!limit"> {{ limit_buffer == 1 ? 'second' : 'seconds' }})</span></label><br>
 				<label><input type="checkbox" v-model="tunings" value="zerolatency"> Fast encoding and low latency streaming</label><br>
@@ -192,7 +200,7 @@
 						if (this.input == 'video' && this.audio)
 							opts += '-c:a aac -b:a ' + this.audio_bitrate + 'k ';
 
-						if (this.profile)
+						if (this.profile && this.rf != 0)
 							opts += '-profile:v baseline -level 3.0 ';
 
 						if (this.limit)
