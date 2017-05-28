@@ -109,6 +109,7 @@
 			</div>
 			<div>
 				Various optimizations:<br>
+				<label><input type="checkbox" v-model="seek"> Optimize for fast seeking (shorter keyframe interval, about 10% larger file)</label><br>
 				<label><input type="checkbox" v-model="tunings" value="film"> Input video is a high-quality movie</label><br>
 				<label><input type="checkbox" v-model="tunings" value="animation"> Input video is an animation movie</label><br>
 				<label><input type="checkbox" v-model="tunings" value="grain"> Input video contains film grain</label><br>
@@ -169,7 +170,8 @@
 					banner: false,
 					faststart: true,
 					concatenate: false,
-					output_framerate: 25
+					output_framerate: 25,
+					seek: true
 				},
 				computed: {
 					commandline: function() {
@@ -205,6 +207,9 @@
 
 						if (this.limit)
 							opts += '-maxrate ' + this.limit_mbps + 'M -bufsize ' + (this.limit_mbps * this.limit_buffer) + 'M ';
+
+						if (this.seek)
+							opts += '-x264-params keyint=15 ';
 
 						if (this.mode == 'CRF') {
 							return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-crf ' + this.rf + ' output.' + this.container.toLowerCase();
