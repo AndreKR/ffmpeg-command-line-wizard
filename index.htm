@@ -72,7 +72,7 @@
 			<div>
 				How to set the quality: <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'FFmpeg always encodes according to a Rate Factor that specifies the quality of the result.<br>Instead of directly specifying the Rate Factor, an average bit rate can be specified. FFmpeg will then determine the optimal Rate Factor in a first pass.<br>In fact the first pass is only used for determining the Rate Factor, no other data is carried over into the second pass.<br>Specifying an average bitrate but running only one pass is possible, but not recommended. FFmpeg would then encode the beginning of the video with a random Rate Factor and then change it near the end of the video to eventually reach the target bitrate.'">ⓘ</span><br>
 				<label><input type="radio" name="mode" v-model="mode" value="CRF"> Manual rate factor</label><br>
-				<label><input type="radio" name="mode" v-model="mode" value="ABR"> Determine from target bitrate (2-Pass)</label>
+				<label><input type="radio" name="mode" v-model="mode" value="ABR" disabled> Determine from target bitrate (2-Pass)</label>
 			</div>
 			<div v-if="mode == 'CRF'">
 				<label>
