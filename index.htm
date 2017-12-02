@@ -4,9 +4,12 @@
 		<title>FFmpeg command line wizard</title>
 
 		<style type="text/css">
-			body {
+			body, td {
 				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 				font-size: 14px;
+			}
+
+			body {
 				line-height: 1.5;
 			}
 
@@ -58,79 +61,103 @@
 		<div id="mountpoint" v-cloak>
 			<div>
 				Input:
-				<label><input type="radio" name="input" v-model="input" value="video">Video</label> <label><input type="checkbox" v-model="audio" v-bind:disabled="input!='video'">with audio</label>
-				<label><input type="radio" name="input" v-model="input" value="images">Images</label>
-			</div>
-			<div v-if="input=='video' && audio">
-				Audio bitrate: <input v-model="audio_bitrate" style="width: 50px">
-			</div>
-			<div v-if="input=='images'">
-				<label>Frame rate: <input v-model="framerate" style="width: 50px"></label><br>
-				<label><input type="checkbox" v-model="concatenate"> I will concatenate this file with other video material</label> <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'When concatenating several files, differing frame rates will lead to errors with FFmpeg.<br>My recommendation is in these cases to encode all files to the same, quite high, frame rate.<br>Doing so won\'t increase the file size because repeated frames don\'t take up any space.'">ⓘ</span><br>
-				<label v-if="concatenate">Output frame rate: <input v-model="output_framerate" style="width: 50px"></label>
+				<label><input type="radio" v-model="input" value="video">Video</label> <label><input type="checkbox" v-model="audio" v-bind:disabled="input != 'video' || output == 'gif'">with audio</label>
+				<label><input type="radio" v-model="input" value="images">Images</label>
 			</div>
 			<div>
-				How to set the quality: <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'FFmpeg always encodes according to a Rate Factor that specifies the quality of the result.<br>Instead of directly specifying the Rate Factor, an average bit rate can be specified. FFmpeg will then determine the optimal Rate Factor in a first pass.<br>In fact the first pass is only used for determining the Rate Factor, no other data is carried over into the second pass.<br>Specifying an average bitrate but running only one pass is possible, but not recommended. FFmpeg would then encode the beginning of the video with a random Rate Factor and then change it near the end of the video to eventually reach the target bitrate.'">ⓘ</span><br>
-				<label><input type="radio" name="mode" v-model="mode" value="CRF"> Manual rate factor</label><br>
-				<label><input type="radio" name="mode" v-model="mode" value="ABR" disabled> Determine from target bitrate (2-Pass)</label>
+				Output:
+				<label><input type="radio" v-model="output" value="h264">H.264</label>
+				<label><input type="radio" v-model="output" value="gif">GIF</label>
 			</div>
-			<div v-if="mode == 'CRF'">
-				<label for="rf_slider">
-					Rate factor:
-				</label>
-				<span style="display: inline-block; width: 30px;" v-bind:style="{ color: rf != 0 && rf < 18 || rf > 28 ? 'orange' : ( rf == 23 ? 'blue' : 'green' ) }">{{ rf }}</span>
-				<table style="display: inline-table; vertical-align: middle;">
-					<tr>
-						<td style="font-size: 11px;">Lossless</td>
-						<td rowspan="2"><input id="rf_slider" v-model="rf" type="range" min="0" max="51" step="1"></td>
-						<td style="font-size: 11px;">Bad quality</td>
-					</tr>
-					<tr>
-						<td style="font-size: 11px;">Large file</td>
-						<td style="font-size: 11px;">Small file</td>
-					</tr>
-				</table>
+			<div v-if="output == 'h264'">
+				<div v-if="input=='video' && audio">
+					Audio bitrate: <input v-model="audio_bitrate" style="width: 50px">
+				</div>
+				<div v-if="input=='images'">
+					<label>Frame rate: <input v-model="framerate" style="width: 50px"></label><br>
+					<label><input type="checkbox" v-model="concatenate"> I will concatenate this file with other video material</label> <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'When concatenating several files, differing frame rates will lead to errors with FFmpeg.<br>My recommendation is in these cases to encode all files to the same, quite high, frame rate.<br>Doing so won\'t increase the file size because repeated frames don\'t take up any space.'">ⓘ</span><br>
+					<label v-if="concatenate">Output frame rate: <input v-model="output_framerate" style="width: 50px"></label>
+				</div>
+				<div>
+					How to set the quality: <span style="color: blue; font-weight: bold; cursor: default;" v-tooltip.right-start="'FFmpeg always encodes according to a Rate Factor that specifies the quality of the result.<br>Instead of directly specifying the Rate Factor, an average bit rate can be specified. FFmpeg will then determine the optimal Rate Factor in a first pass.<br>In fact the first pass is only used for determining the Rate Factor, no other data is carried over into the second pass.<br>Specifying an average bitrate but running only one pass is possible, but not recommended. FFmpeg would then encode the beginning of the video with a random Rate Factor and then change it near the end of the video to eventually reach the target bitrate.'">ⓘ</span><br>
+					<label><input type="radio" v-model="mode" value="CRF"> Manual rate factor</label><br>
+					<label><input type="radio" v-model="mode" value="ABR" disabled> Determine from target bitrate (2-Pass)</label>
+				</div>
+				<div v-if="mode == 'CRF'">
+					<label for="rf_slider">
+						Rate factor:
+					</label>
+					<span style="display: inline-block; width: 30px;" v-bind:style="{ color: rf != 0 && rf < 18 || rf > 28 ? 'orange' : ( rf == 23 ? 'blue' : 'green' ) }">{{ rf }}</span>
+					<table style="display: inline-table; vertical-align: middle;">
+						<tr>
+							<td style="font-size: 11px;">Lossless</td>
+							<td rowspan="2"><input id="rf_slider" v-model="rf" type="range" min="0" max="51" step="1"></td>
+							<td style="font-size: 11px;">Bad quality</td>
+						</tr>
+						<tr>
+							<td style="font-size: 11px;">Large file</td>
+							<td style="font-size: 11px;">Small file</td>
+						</tr>
+					</table>
+				</div>
+				<div>
+					<label>
+						Patience preset:
+						<select v-model="preset">
+							<option value="ultrafast">ultrafast</option>
+							<option value="superfast">superfast</option>
+							<option value="veryfast">veryfast</option>
+							<option value="faster">faster</option>
+							<option value="medium">medium</option>
+							<option value="slow">slow</option>
+							<option value="slower">slower</option>
+							<option value="veryslow">veryslow</option>
+						</select>
+						{{ presetinfo }}
+					</label>
+				</div>
+				<div>
+					Various optimizations:<br>
+					<label><input type="checkbox" v-model="seek"> Optimize for fast seeking (shorter keyframe interval, about 10% larger file)</label><br>
+					<label><input type="checkbox" v-model="tunings" value="film"> Input video is a high-quality movie</label><br>
+					<label><input type="checkbox" v-model="tunings" value="animation"> Input video is an animation movie</label><br>
+					<label><input type="checkbox" v-model="tunings" value="grain"> Input video contains film grain</label><br>
+					<label><input type="checkbox" v-model="tunings" value="stillimage"> Input video is an image slideshow</label><br>
+					<label><input type="checkbox" v-model="tunings" value="fastdecode"> Optimize for really weak CPU playback devices</label><br>
+					<label v-if="rf != 0"><input type="checkbox" v-model="profile"> Optimize for really old devices</label><br v-if="rf != 0">
+					<label><input type="checkbox" v-model="faststart"> Move headers to beginning of file (so it can play while still downloading)</label><br>
+					<label><input type="checkbox" v-model="limit"> Limit bitrate to <input v-model="limit_mbps" style="width: 50px" v-bind:disabled="!limit"> Mbit/s <span v-if="limit">(assuming a receiving buffer of <input v-model="limit_buffer" style="width: 50px" v-bind:disabled="!limit"> {{ limit_buffer == 1 ? 'second' : 'seconds' }})</span></label><br>
+					<label><input type="checkbox" v-model="tunings" value="zerolatency"> Fast encoding and low latency streaming</label><br>
+				</div>
+				<div>
+					Container:
+					<label><input type="radio" v-model="container" value="MP4">MP4</label>
+					<label><input type="radio" v-model="container" value="MKV">MKV</label>
+				</div>
+				<div v-if="mode=='ABR'">
+					The first pass creates a dummy file, what should it be called?
+					<label><input type="radio" v-model="dummyfile" value="output">use the output file</label>
+					<label><input type="radio" v-model="dummyfile" value="dummy"><code>"dummy"</code></label>
+					<label><input type="radio" v-model="dummyfile" value="/dev/null"><code>/dev/null</code> (Linux)</label>
+					<label><input type="radio" v-model="dummyfile" value="NUL"><code>NUL</code> (Windows)</label>
+				</div>
 			</div>
-			<div>
-				<label>
-					Patience preset:
-					<select v-model="preset">
-						<option value="ultrafast">ultrafast</option>
-						<option value="superfast">superfast</option>
-						<option value="veryfast">veryfast</option>
-						<option value="faster">faster</option>
-						<option value="medium">medium</option>
-						<option value="slow">slow</option>
-						<option value="slower">slower</option>
-						<option value="veryslow">veryslow</option>
-					</select>
-					{{ presetinfo }}
-				</label>
-			</div>
-			<div>
-				Various optimizations:<br>
-				<label><input type="checkbox" v-model="seek"> Optimize for fast seeking (shorter keyframe interval, about 10% larger file)</label><br>
-				<label><input type="checkbox" v-model="tunings" value="film"> Input video is a high-quality movie</label><br>
-				<label><input type="checkbox" v-model="tunings" value="animation"> Input video is an animation movie</label><br>
-				<label><input type="checkbox" v-model="tunings" value="grain"> Input video contains film grain</label><br>
-				<label><input type="checkbox" v-model="tunings" value="stillimage"> Input video is an image slideshow</label><br>
-				<label><input type="checkbox" v-model="tunings" value="fastdecode"> Optimize for really weak CPU playback devices</label><br>
-				<label v-if="rf != 0"><input type="checkbox" v-model="profile"> Optimize for really old devices</label><br v-if="rf != 0">
-				<label><input type="checkbox" v-model="faststart"> Move headers to beginning of file (so it can play while still downloading)</label><br>
-				<label><input type="checkbox" v-model="limit"> Limit bitrate to <input v-model="limit_mbps" style="width: 50px" v-bind:disabled="!limit"> Mbit/s <span v-if="limit">(assuming a receiving buffer of <input v-model="limit_buffer" style="width: 50px" v-bind:disabled="!limit"> {{ limit_buffer == 1 ? 'second' : 'seconds' }})</span></label><br>
-				<label><input type="checkbox" v-model="tunings" value="zerolatency"> Fast encoding and low latency streaming</label><br>
-			</div>
-			<div>
-				Container:
-				<label><input type="radio" name="container" v-model="container" value="MP4">MP4</label>
-				<label><input type="radio" name="container" v-model="container" value="MKV">MKV</label>
-			</div>
-			<div v-if="mode=='ABR'">
-				The first pass creates a dummy file, what should it be called?
-				<label><input type="radio" name="dummyfile" v-model="dummyfile" value="output">use the output file</label>
-				<label><input type="radio" name="dummyfile" v-model="dummyfile" value="dummy"><code>"dummy"</code></label>
-				<label><input type="radio" name="dummyfile" v-model="dummyfile" value="/dev/null"><code>/dev/null</code> (Linux)</label>
-				<label><input type="radio" name="dummyfile" v-model="dummyfile" value="NUL"><code>NUL</code> (Windows)</label>
+			<div v-if="output == 'gif'">
+				<table><tr style="vertical-align: top;">
+					<td>Palette:</td>
+					<td><input type="radio" id="palette-faster" v-model="palette" value="faster"></td>
+					<td><label for="palette-faster">
+						Faster<br>
+						<span style="font-size: 12px;">Uses dithering to a standard palette provided by FFmpeg<br>
+					Can cause dithering artifacts and slight banding</span>
+					</label></td>
+					<td><input type="radio" id="palette-better" v-model="palette" value="better"></td>
+					<td><label for="palette-better">
+						Better<br>
+						<span style="font-size: 12px;">Determines an optimized palette for the video<br>
+					Uses two passes and a temporary file for the palette</span>
+					</label></td>
+				</tr></table>
 			</div>
 			<div>
 				<label><input type="checkbox" v-model="banner">Include FFmpeg build configuration in log output</label>
@@ -139,7 +166,7 @@
 			<b>Result:</b>
 			<pre style="margin: 0;"><code>{{ commandline }}</code></pre>
 			<small v-if="input=='images'"><br>The example uses image filenames of the format <code>img001.jpg</code>.</small>
-			<small v-if="input=='video'"><br>The example uses <code>source.ext</code> as the imput image.</small>
+			<small v-if="input=='video'"><br>The example uses <code>source.ext</code> as the imput video.</small>
 		</div>
 
 		<script src="https://unpkg.com/vue"></script>
@@ -153,6 +180,7 @@
 				el: '#mountpoint',
 				data: {
 					input: 'video',
+					output: 'h264',
 					framerate: 25,
 					mode: 'CRF',
 					rf: 23,
@@ -171,13 +199,14 @@
 					faststart: true,
 					concatenate: false,
 					output_framerate: 25,
-					seek: true
+					seek: true,
+					palette: 'faster'
 				},
 				computed: {
 					commandline: function() {
 
 						var opts = '';
-
+						
 						if (this.input == 'video')
 							opts += '-i source.ext ';
 						if (this.input == 'images') {
@@ -187,43 +216,58 @@
 								opts += '-r ' + this.output_framerate + ' ';
 							}
 						}
+						
+						if (this.output == 'h264') {
 
-						opts += '-c:v libx264 '; // necessary?
+							opts += '-c:v libx264 '; // necessary?
+	
+							opts += '-preset ' + this.preset + ' ';
+	
+							if (this.tunings.length) {
+								opts += '-tune ' + this.tunings.join(',') + ' ';
+							}
+	
+							if (this.faststart)
+								opts += '-movflags faststart ';
+	
+							if (this.input == 'video' && this.audio)
+								opts += '-c:a aac -b:a ' + this.audio_bitrate + 'k ';
+	
+							if (this.profile && this.rf != 0)
+								opts += '-profile:v baseline -level 3.0 ';
+	
+							if (this.limit)
+								opts += '-maxrate ' + this.limit_mbps + 'M -bufsize ' + (this.limit_mbps * this.limit_buffer) + 'M ';
+	
+							if (this.seek)
+								opts += '-x264-params keyint=15 ';
+	
+							if (this.mode == 'CRF') {
+								return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-crf ' + this.rf + ' output.' + this.container.toLowerCase();
+							}
+	
+							if (this.mode == 'ABR') {
+								var dummy = this.dummyfile;
+								if (this.dummyfile == 'output')
+									dummy = 'output.' + this.container.toLowerCase();
+	
+								return 'ffmpeg '  + (!this.banner ? '-hide_banner ' : '') + '-y ' + opts + '-b:v ' + this.bitrate + ' -pass 1 -f mp4 ' + dummy + ' && ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-b:v ' + this.bitrate + ' -pass 2 output.' + this.container.toLowerCase();
+							}
 
-						opts += '-preset ' + this.preset + ' ';
-
-						if (this.tunings.length) {
-							opts += '-tune ' + this.tunings.join(',') + ' ';
+						}
+						
+						if (this.output == 'gif') {
+							
+							if (this.palette == 'faster') {
+								return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + 'output.gif';
+							}
+							if (this.palette == 'better') {
+						
+								return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-vf palettegen palette.png && ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-i palette.png -filter_complex "[0:v][1:v] paletteuse" output.gif';
+							}
 						}
 
-						if (this.faststart)
-							opts += '-movflags faststart ';
-
-						if (this.input == 'video' && this.audio)
-							opts += '-c:a aac -b:a ' + this.audio_bitrate + 'k ';
-
-						if (this.profile && this.rf != 0)
-							opts += '-profile:v baseline -level 3.0 ';
-
-						if (this.limit)
-							opts += '-maxrate ' + this.limit_mbps + 'M -bufsize ' + (this.limit_mbps * this.limit_buffer) + 'M ';
-
-						if (this.seek)
-							opts += '-x264-params keyint=15 ';
-
-						if (this.mode == 'CRF') {
-							return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-crf ' + this.rf + ' output.' + this.container.toLowerCase();
-						}
-
-						if (this.mode == 'ABR') {
-							var dummy = this.dummyfile;
-							if (this.dummyfile == 'output')
-								dummy = 'output.' + this.container.toLowerCase();
-
-							return 'ffmpeg '  + (!this.banner ? '-hide_banner ' : '') + '-y ' + opts + '-b:v ' + this.bitrate + ' -pass 1 -f mp4 ' + dummy + ' && ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-b:v ' + this.bitrate + ' -pass 2 output.' + this.container.toLowerCase();
-						}
-
-						return opts;
+						return "";
 					},
 					presetinfo: function() {
 						var mapping = {
