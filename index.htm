@@ -20,6 +20,14 @@
 			div {
 				margin-bottom: 5px;
 			}
+			
+			.commandline span {
+				border-radius: 3px;
+				padding: 1px;
+			}
+			.commandline span:hover {
+				background-color: #aaa;
+			}
 
 			[v-cloak] { opacity: .1; }
 		</style>
@@ -164,7 +172,7 @@
 			</div>
 			<br>
 			<b>Result:</b>
-			<pre style="margin: 0;"><code>{{ commandline }}</code></pre>
+			<pre style="margin: 0;"><code v-html="commandline" class="commandline"></code></pre>
 			<small v-if="input=='images'"><br>The example uses image filenames of the format <code>img001.jpg</code>.</small>
 			<small v-if="input=='video'"><br>The example uses <code>source.ext</code> as the imput video.</small>
 		</div>
@@ -219,7 +227,7 @@
 						
 						if (this.output == 'h264') {
 
-							opts += '-c:v libx264 '; // necessary?
+							opts += '<span title="Only necessary if the output filename does not end with .mp4">-c:v libx264</span> '; // necessary?
 	
 							opts += '-preset ' + this.preset + ' ';
 	
@@ -240,7 +248,9 @@
 								opts += '-maxrate ' + this.limit_mbps + 'M -bufsize ' + (this.limit_mbps * this.limit_buffer) + 'M ';
 	
 							if (this.seek)
-								opts += '-x264-params keyint=15 ';
+								opts += '<span title="Inserts an I-frame every 15 frames">-x264-params keyint=15</span> ';
+								
+							opts += '<span title="Preserves the frame timestamps of VFR videos">-vsync 2 -enc_time_base -1</span> ';
 	
 							if (this.mode == 'CRF') {
 								return 'ffmpeg ' + (!this.banner ? '-hide_banner ' : '') + opts + '-crf ' + this.rf + ' output.' + this.container.toLowerCase();
